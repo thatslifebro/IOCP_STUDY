@@ -26,7 +26,7 @@ class IOCPServer
 	bool _isRunning = false;
 
 	virtual void RecvCompletionHandler(stClientInfo* clientInfo, DWORD byteTransfered) = 0;
-	
+	virtual void DoWSASend(stClientInfo* clientInfo, char* data, size_t dataSize) = 0;
 
 public:
 	IOCPServer()
@@ -112,6 +112,7 @@ public:
 		//_listenSocket IOCP 등록
 		CreateIoCompletionPort((HANDLE)_listenSocket, _IOCPHandle, 0, 0);
 
+		// 전체다 accept 걸어놓기
 		for (int i = 0; i < _clientInfos.size(); i++)
 		{
 			_clientInfos[i];
@@ -124,7 +125,6 @@ public:
 
 				_clientInfos[i]._clientSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 				AcceptEx(_listenSocket, _clientInfos[i]._clientSocket, _clientInfos[i]._acceptBuffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, NULL, &_clientInfos[i]._acceptOverlapped._overlapped);
-				break;
 			}
 		}
 
@@ -138,7 +138,7 @@ public:
 
 		while (_isRunning)
 		{//wsasend, wsarecv 
-			bool result = GetQueuedCompletionStatus(_IOCPHandle, &byteTransfered, (PULONG_PTR)&clientInfo, (LPOVERLAPPED*)&overlappedEx, INFINITE); // 문제있을지도. completionkey
+			bool result = GetQueuedCompletionStatus(_IOCPHandle, &byteTransfered, (PULONG_PTR)&clientInfo, (LPOVERLAPPED*)&overlappedEx, INFINITE);
 
 			if (result == false)
 			{
@@ -169,23 +169,6 @@ public:
 
 		CreateIoCompletionPort((HANDLE)clientInfo->_clientSocket, _IOCPHandle, (ULONG_PTR)clientInfo, 0);
 
-		//Accept 걸어놓기
-		for (int i = 0; i < _clientInfos.size(); i++)
-		{
-			_clientInfos[i];
-
-			if (_clientInfos[i]._clientSocket == INVALID_SOCKET)
-			{
-				_clientInfos[i]._acceptOverlapped._ioType = IO_ACCEPT;
-				_clientInfos[i]._acceptOverlapped._sessionIndex = i;
-				_clientInfos[i]._sessionIndex = i;
-
-				_clientInfos[i]._clientSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-				AcceptEx(_listenSocket, _clientInfos[i]._clientSocket, _clientInfos[i]._acceptBuffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, NULL, &_clientInfos[i]._acceptOverlapped._overlapped);
-				break;
-			}
-		}
-
 		// Recv 걸어놓기
 		RecvData(clientInfo);
 	}
@@ -193,33 +176,33 @@ public:
 	void SendCompletionHandler(stClientInfo* clientInfo, DWORD byteTransfered)
 	{
 		// buffer 초기화
-		ZeroMemory(clientInfo->_sendBuffer, BUF_SIZE);
+		if (strlen(clientInfo->_sendBuffer) == byteTransfered)
+		{
+			ZeroMemory(clientInfo->_sendBuffer, BUF_SIZE);
+
+			if (!clientInfo->_sendQueue->empty())
+			{
+				clientInfo->PopSendQueue();
+			}
+		}
+		else
+		{
+			auto error = WSAGetLastError();
+			std::cout << "GetQueuedCompletionStatus Error : " << error << std::endl;
+			return;
+		}
 
 		if (clientInfo->_sendQueue->empty())
 		{
 			// error
-		}
-
-		if (!clientInfo->_sendQueue->empty())
-		{
-			//auto sentData = clientInfo->_sendQueue->front();
-			// TODO bytetransfered가 데이터 보다 작으면 덜보낸거. 처리해야함.
-
-			clientInfo->PopSendQueue();
+			std::cout << "Error _sendQueue is empty."<< std::endl;
+			return;
 		}
 
 		if (!clientInfo->_sendQueue->empty())
 		{
 			auto data = clientInfo->_sendQueue->front();
-			auto dataSize = strlen(data.get());
-			WSABUF wsaBuf;
-			wsaBuf.buf = data.get();
-			wsaBuf.len = (ULONG)dataSize;
-
-			clientInfo->_sendOverlapped._wsaBuf = wsaBuf;
-
-			// 보내기 예약
-			WSASend(clientInfo->_clientSocket, &wsaBuf, 1, NULL, 0, &clientInfo->_sendOverlapped._overlapped, NULL);
+			DoWSASend(clientInfo, data.get(), strlen(data.get()));
 		}
 	}
 

@@ -32,6 +32,7 @@ public:
 			return nullptr;
 		}
 
+		std::lock_guard<std::mutex> lock(_mutex);
 		auto packet = _queue.front();
 		_queue.pop();
 		return packet;

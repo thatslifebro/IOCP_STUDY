@@ -54,6 +54,13 @@ struct stClientInfo
 	stClientInfo(stClientInfo&&) = default;
 	stClientInfo& operator=(stClientInfo&&) = default;
 
+	void PushSendQueue(std::shared_ptr<char[]> data)
+	{
+		std::lock_guard<std::mutex> block(*_mutex);
+
+		_sendQueue->push(data);
+	}
+
 	void PopSendQueue()
 	{
 		std::lock_guard<std::mutex> block(*_mutex);

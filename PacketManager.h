@@ -2,6 +2,7 @@
 
 #include "ConcurrentQueue.h"
 #include <iostream>
+#include <functional>
 
 class PacketManager
 {
@@ -9,14 +10,15 @@ class PacketManager
 	ConcurrentQueue _queue;  // char만 받지말고 clientinfo 받아야할듯.
 	std::thread _packetProccessThread;
 
-
 	bool _isRunning = false;
 
-	// 패킷 핸들러 등록 해놓고. 등등 나중에 하기.
+	std::function<void(stClientInfo*, char*, size_t)> DoWSASend;
 
 public:
-	// 스레드를 만들어야함.
-	// 그 스레드는 큐에 있는 데이터를 꺼내서 처리해야함.
+
+	PacketManager(std::function<void(stClientInfo*, char*, size_t)> doWSASend) : DoWSASend(doWSASend)
+	{
+	}
 
 	void StartPacketProccessThread()
 	{
@@ -64,25 +66,16 @@ public:
 			auto sendData = std::make_shared<char[]>(dataSize + 1);
 			memcpy(sendData.get(), data, dataSize + 1);
 
-			clientInfo->_sendQueue->push(sendData);
+			clientInfo->PushSendQueue(sendData);
 
-			// 보낼 데이터가 없다면 바로 보내기
-			WSABUF wsaBuf;
-			wsaBuf.buf = data;
-			wsaBuf.len = (ULONG)dataSize;
-
-			clientInfo->_sendOverlapped._wsaBuf = wsaBuf;
-			clientInfo->_sendOverlapped._ioType = IO_SEND;
-
-			// 보내기 예약
-			WSASend(clientInfo->_clientSocket, &wsaBuf, 1, NULL, 0, &clientInfo->_sendOverlapped._overlapped, NULL);
+			DoWSASend(clientInfo, data, dataSize);
 		}
 		else
 		{
 			auto sendData = std::make_shared<char[]>(dataSize + 1);
 			memcpy(sendData.get(), data, dataSize + 1);
 
-			clientInfo->_sendQueue->push(sendData);
+			clientInfo->PushSendQueue(sendData);
 		}
 	}
 };
