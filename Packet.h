@@ -1,20 +1,28 @@
 #pragma once
 
 #include "ClientInfo.h"
+#include "PacketID.h"
 
 class Packet
 {
 public:
 	char* _data;
-	size_t _dataSize;
+
+	unsigned short _packetSize;
+	unsigned short _packetID;
+
 	stClientInfo* _clientInfo;
 
-	Packet(stClientInfo* clientInfo, char* data, size_t byteTransfered) : _clientInfo(clientInfo)
+	Packet(stClientInfo* clientInfo, char* data, unsigned short packetSize) : _clientInfo(clientInfo)
 	{
-		_dataSize = byteTransfered;
-		_data = new char[strlen(data) + 1];
+		_packetSize = packetSize;
+		_packetID = *reinterpret_cast<unsigned short*>(clientInfo->_recvBuffer + sizeof(unsigned short));
+
+		_data = new char[packetSize];
+
+		ZeroMemory(_data, packetSize);
 		// 복사하기
-		memcpy(_data, data, strlen(data) + 1);
+		memcpy(_data, data, packetSize);
 	}
 
 	~Packet()
@@ -22,5 +30,4 @@ public:
 		delete[] _data;
 	}
 
-	
 };

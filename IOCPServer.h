@@ -168,6 +168,8 @@ public:
 		auto clientInfo = &_clientInfos[overlappedEx._sessionIndex];
 
 		CreateIoCompletionPort((HANDLE)clientInfo->_clientSocket, _IOCPHandle, (ULONG_PTR)clientInfo, 0);
+		
+		std::cout << "Accept Success" << std::endl;
 
 		// Recv 걸어놓기
 		RecvData(clientInfo);
@@ -176,7 +178,8 @@ public:
 	void SendCompletionHandler(stClientInfo* clientInfo, DWORD byteTransfered)
 	{
 		// buffer 초기화
-		if (strlen(clientInfo->_sendBuffer) == byteTransfered)
+		// 다 안보내졌으면 기다리기
+		if (clientInfo->_sendCursor == byteTransfered)
 		{
 			ZeroMemory(clientInfo->_sendBuffer, BUF_SIZE);
 
@@ -185,17 +188,15 @@ public:
 				clientInfo->PopSendQueue();
 			}
 		}
+		else if (clientInfo->_sendCursor < byteTransfered)
+		{
+			// 다 안보내졌으면 기다리기
+			clientInfo->_sendCursor -= byteTransfered;
+		}
 		else
 		{
 			auto error = WSAGetLastError();
 			std::cout << "GetQueuedCompletionStatus Error : " << error << std::endl;
-			return;
-		}
-
-		if (clientInfo->_sendQueue->empty())
-		{
-			// error
-			std::cout << "Error _sendQueue is empty."<< std::endl;
 			return;
 		}
 
@@ -210,8 +211,8 @@ public:
 	{
 		//OverlappedEx에 버퍼정보 전달.
 		WSABUF wsaBuf;
-		wsaBuf.buf = clientInfo->_recvBuffer;
-		wsaBuf.len = BUF_SIZE;
+		wsaBuf.buf = clientInfo->RecvBuffPos();
+		wsaBuf.len = BUF_SIZE - clientInfo->_recvCursor;
 
 		clientInfo->_recvOverlapped._wsaBuf = wsaBuf;
 		clientInfo->_recvOverlapped._ioType = IO_RECV;

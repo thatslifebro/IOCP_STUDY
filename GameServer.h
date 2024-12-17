@@ -28,8 +28,29 @@ public:
 
 	void RecvCompletionHandler(stClientInfo* clientInfo, DWORD byteTransfered)
 	{
-		_packetManager.Push(clientInfo, byteTransfered);
+		clientInfo->_recvCursor += byteTransfered;
 
+		if (clientInfo->_recvCursor < sizeof(unsigned short))
+		{
+			RecvData(clientInfo);
+			return;
+		}
+
+		if (clientInfo->_packetSize == 0)
+		{
+			unsigned short value = *reinterpret_cast<unsigned short*>(clientInfo->_recvBuffer);
+
+			clientInfo->_packetSize = value;
+		}
+
+		// ´Ù µé¾î¿È
+		if (clientInfo->_recvCursor >= clientInfo->_packetSize)
+		{
+			_packetManager.Push(clientInfo, byteTransfered);
+			clientInfo->_packetSize = 0;
+			clientInfo->_recvCursor = 0;
+		}
+		
 		RecvData(clientInfo);
 	}
 
@@ -41,12 +62,19 @@ public:
 
 	void DoWSASend(stClientInfo* clientInfo, char* data, size_t dataSize)
 	{
+		clientInfo->_sendCursor = dataSize;
+
+		memcpy(clientInfo->_sendBuffer, data, dataSize);
+
 		WSABUF wsaBuf;
-		wsaBuf.buf = data;
+		wsaBuf.buf = clientInfo->_sendBuffer;
 		wsaBuf.len = (ULONG)dataSize;
 
 		clientInfo->_sendOverlapped._wsaBuf = wsaBuf;
+		clientInfo->_sendOverlapped._ioType = IO_SEND;
 
-		WSASend(clientInfo->_clientSocket, &wsaBuf, 1, NULL, 0, &clientInfo->_sendOverlapped._overlapped, NULL);
+		DWORD sendFlag = 0;
+
+		WSASend(clientInfo->_clientSocket, &wsaBuf, 1, NULL, sendFlag, &clientInfo->_sendOverlapped._overlapped, NULL);
 	}
 };

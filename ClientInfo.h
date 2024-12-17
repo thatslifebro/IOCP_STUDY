@@ -28,6 +28,10 @@ struct stClientInfo
 
 	int _sessionIndex;
 
+	unsigned short _recvCursor = 0;
+	unsigned short _packetSize = 0;
+	unsigned short _sendCursor = 0;
+
 	char _recvBuffer[BUF_SIZE];
 	char _sendBuffer[BUF_SIZE];
 	char _acceptBuffer[BUF_SIZE];
@@ -69,5 +73,10 @@ struct stClientInfo
 			auto sentData = _sendQueue->front();
 			_sendQueue->pop();
 		}
+	}
+
+	char* RecvBuffPos()
+	{
+		return &_recvBuffer[_recvCursor];
 	}
 };
