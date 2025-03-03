@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -81,6 +81,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -110,6 +111,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -129,16 +131,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="IOCPServer.h" />
+    <ClCompile Include="IocpCore.cpp" />
+    <ClCompile Include="IocpEvent.cpp" />
+    <ClCompile Include="IocpObject.h" />
+    <ClCompile Include="Listener.cpp" />
+    <ClCompile Include="Service.cpp" />
+    <ClCompile Include="Service.h" />
+    <ClCompile Include="IocpCore3.h" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Session.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClientInfo.h" />
     <ClInclude Include="ConcurrentQueue.h" />
+    <ClInclude Include="ErrorCode.h" />
     <ClInclude Include="GameServer.h" />
+    <ClInclude Include="IocpCore.h" />
+    <ClInclude Include="IocpEvent.h" />
+    <ClInclude Include="LoginInfo.h" />
+    <ClInclude Include="LoginReq.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketID.h" />
     <ClInclude Include="PacketManager.h" />
+    <ClInclude Include="Session.h" />
+    <ClInclude Include="Types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Listener.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,8 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="IOCPServer.h" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Listener.cpp" />
+    <ClCompile Include="Service.cpp" />
+    <ClCompile Include="Service.h" />
+    <ClCompile Include="IocpCore3.h" />
+    <ClCompile Include="IocpObject.h" />
+    <ClCompile Include="IocpEvent.cpp" />
+    <ClCompile Include="Session.cpp" />
+    <ClCompile Include="IocpCore.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameServer.h" />
@@ -11,5 +18,22 @@
     <ClInclude Include="Packet.h" />
     <ClInclude Include="ClientInfo.h" />
     <ClInclude Include="PacketID.h" />
+    <ClInclude Include="LoginInfo.h" />
+    <ClInclude Include="LoginReq.h">
+      <Filter>Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorCode.h" />
+    <ClInclude Include="Types.h" />
+    <ClInclude Include="IocpCore.h" />
+    <ClInclude Include="IocpEvent.h" />
+    <ClInclude Include="Session.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Packets">
+      <UniqueIdentifier>{b332ed67-3ae6-46ca-8f65-77d9195d80b5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Listener.h" />
   </ItemGroup>
 </Project>

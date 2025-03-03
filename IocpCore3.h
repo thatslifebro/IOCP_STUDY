@@ -14,10 +14,10 @@
 
 #define MAX_WORKER_THREAD 4
 
-class IOCPServer
+class IocpCore3
 {
-	HANDLE _IOCPHandle = INVALID_HANDLE_VALUE;
-	SOCKET _listenSocket = INVALID_SOCKET;
+	HANDLE _iocpHandle;
+	SOCKET _listenSocket;
 	std::vector<stClientInfo> _clientInfos;
 
 	std::thread _acceptThread; 
@@ -29,11 +29,12 @@ class IOCPServer
 	virtual void DoWSASend(stClientInfo* clientInfo, char* data, size_t dataSize) = 0;
 
 public:
-	IOCPServer()
+	IocpCore3()
 	{
+		_iocpHandle = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, MAX_WORKER_THREAD);
 	}
 
-	virtual ~IOCPServer() // 여길 가상 소멸자로 만들지 않으면 파생 클래스를 포인터로 생성하고 delete할 때 호출이 안됨.주의.
+	virtual ~IocpCore3() // 여길 가상 소멸자로 만들지 않으면 파생 클래스를 포인터로 생성하고 delete할 때 호출이 안됨.주의.
 	{
 		WSACleanup();
 	}
@@ -42,22 +43,6 @@ public:
 	{
 		WSADATA wsaData;
 		WSAStartup(MAKEWORD(2, 2), &wsaData);
-
-		_IOCPHandle = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
-
-		if (_IOCPHandle == NULL)
-		{
-			std::cout << "CreateIoCompletionPort Error : " << WSAGetLastError() << std::endl;
-			return;
-		}
-
-		_listenSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-
-		if (_listenSocket == INVALID_SOCKET)
-		{
-			std::cout << "WSASocket Error : " << WSAGetLastError() << std::endl;
-			return;
-		}
 
 		_isRunning = true;
 	}
@@ -110,7 +95,7 @@ public:
 	void StartAccept()
 	{
 		//_listenSocket IOCP 등록
-		CreateIoCompletionPort((HANDLE)_listenSocket, _IOCPHandle, 0, 0);
+		CreateIoCompletionPort((HANDLE)_listenSocket, _iocpHandle, 0, 0);
 
 		// 전체다 accept 걸어놓기
 		for (int i = 0; i < _clientInfos.size(); i++)
@@ -138,7 +123,7 @@ public:
 
 		while (_isRunning)
 		{//wsasend, wsarecv 
-			bool result = GetQueuedCompletionStatus(_IOCPHandle, &byteTransfered, (PULONG_PTR)&clientInfo, (LPOVERLAPPED*)&overlappedEx, INFINITE);
+			bool result = GetQueuedCompletionStatus(_iocpHandle, &byteTransfered, (PULONG_PTR)&clientInfo, (LPOVERLAPPED*)&overlappedEx, INFINITE);
 
 			if (result == false)
 			{
@@ -167,7 +152,7 @@ public:
 	{
 		auto clientInfo = &_clientInfos[overlappedEx._sessionIndex];
 
-		CreateIoCompletionPort((HANDLE)clientInfo->_clientSocket, _IOCPHandle, (ULONG_PTR)clientInfo, 0);
+		CreateIoCompletionPort((HANDLE)clientInfo->_clientSocket, _iocpHandle, (ULONG_PTR)clientInfo, 0);
 		
 		std::cout << "Accept Success" << std::endl;
 

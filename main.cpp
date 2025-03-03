@@ -1,20 +1,62 @@
-#include "GameServer.h"
+#include "IocpCore.h"
+#include "Service.h"
 
+class GameSession : public Session
+{
+	void virtual OnConnected() override
+	{
+		std::cout << "GameSession OnConnected." << std::endl;
+	}
+
+	void virtual OnRecv(BYTE* buffer, int numOfBytes) override
+	{
+		std::string s(reinterpret_cast<char*>(buffer), numOfBytes);
+
+		std::cout << "GameSession OnRecv : " << s << std::endl;
+
+		Send(buffer, numOfBytes);
+	}
+
+	void virtual OnDisconnected() override
+	{
+		std::cout << "GameSession OnDisconnected" << std::endl;
+	}
+
+	void virtual OnSend(int numOfBytes) override
+	{
+		std::cout << "GameSession OnSend : " << numOfBytes << " bytes" << std::endl;
+	}
+};
 
 int main()
 {
-	GameServer server;
-	server.StartServer(11021);
+	std::vector<std::thread> threads;
 
-	std::cout << "Server Start" << std::endl;
+	ServiceRef service = std::make_shared<Service>(
+		std::make_shared<IocpCore>(),
+		std::make_shared<Listener>(11021),
+		std::make_shared<GameSession>,
+		100
+	);
 
-	std::cout << "Press any key to exit..." << std::endl;
-	
-	getchar();
+	if (service->Start() == false)
+	{
+		std::cout << "서버 시작 안됨." << std::endl;
+		return 0;
+	}
 
-	server.StopServer();
+	for (int i = 0; i < 5; i++)
+	{
+		threads.emplace_back(std::thread([=] {
+			while (true)
+			{
+				service->GetIocpCore()->Dispatch();
+			}
+		}));
+	}
 
-	std::cout << "Server End" << std::endl;
-
-	return 0;
+	for (int i = 0; i < threads.size(); i++)
+	{
+		threads[i].join();
+	}
 }

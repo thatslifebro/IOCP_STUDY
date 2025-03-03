@@ -1,6 +1,7 @@
 #pragma once
 
 #include <WinSock2.h>
+//#include "Res.h"
 
 #define BUF_SIZE 1024
 

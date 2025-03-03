@@ -4,6 +4,9 @@
 #include <iostream>
 #include <functional>
 #include <unordered_map>
+#include "LoginInfo.h"
+#include "LoginReq.h"
+#include "ErrorCode.h"
 
 class PacketManager
 {
@@ -105,7 +108,37 @@ public:
 
 	void Login(std::shared_ptr<Packet> packet)
 	{
-		// 로그인 처리
+		LoginReq loginPacket(packet->_clientInfo, packet->_data, packet->_packetSize);
+
+		auto id = loginPacket.GetID();
+		auto pw = loginPacket.GetPW();
+
+		// RES 패킷 만들어서 OneSend로 보낼건데 이게 보내진게 확인되야 삭제해야함. 어디에 보관할까. 고민. clientInfo에 패킷을 넣는게 좋아보임.
+
+		if (id == "" or pw == "")
+		{
+			// error 처리
+			packet->_clientInfo->_responseData.Result = (unsigned short)ErrorCode::LoginPacketWrongSize;
+			return;
+		}
+
+		if (LoginInfoDatabase[id] == pw)
+		{
+			// 로그인 처리
+			
+			// TODO : 유저 매니저 만들어서 저장하기? 음.. 나중엔 소켓 접속한사람 저장을 해놓고, 거기에 id 정보 추가하는 식으로 처리해보자.ㅣㅣ
+
+			// 로그인 response 패킷 보내기.
+			packet->_clientInfo->_responseData.Result = (unsigned short)ErrorCode::None;
+		}
+		else
+		{
+			// error 처리
+			packet->_clientInfo->_responseData.Result = (unsigned short)ErrorCode::LoginPacketNotRegister;
+			return;
+		}
+
+		OneSend(packet->_clientInfo, packet->_clientInfo->_responseData.Data, 2);
 	}
 
 	void Chat(std::shared_ptr<Packet> packet)

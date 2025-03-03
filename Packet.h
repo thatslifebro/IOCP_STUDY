@@ -3,6 +3,9 @@
 #include "ClientInfo.h"
 #include "PacketID.h"
 
+#define MAX_USER_ID_BYTE_LENGTH 33
+#define MAX_USER_PW_BYTE_LENGTH 33
+
 class Packet
 {
 public:

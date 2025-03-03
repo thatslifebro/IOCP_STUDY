@@ -1,11 +1,11 @@
 #pragma once
 
-#include "IOCPServer.h"
+#include "IocpCore.h"
 #include "PacketManager.h"
 
 #define MAX_CLIENT_COUNT 100
 
-class GameServer : public IOCPServer
+class GameServer : public IocpCore3
 {
 private:
 	PacketManager _packetManager;
