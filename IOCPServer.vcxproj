@@ -137,27 +137,20 @@
     <ClCompile Include="Listener.cpp" />
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="Service.h" />
-    <ClCompile Include="IocpCore3.h" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Session.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClientInfo.h" />
-    <ClInclude Include="ConcurrentQueue.h" />
-    <ClInclude Include="ErrorCode.h" />
     <ClInclude Include="GameServer.h" />
     <ClInclude Include="IocpCore.h" />
     <ClInclude Include="IocpEvent.h" />
-    <ClInclude Include="LoginInfo.h" />
     <ClInclude Include="LoginReq.h" />
-    <ClInclude Include="Packet.h" />
-    <ClInclude Include="PacketID.h" />
-    <ClInclude Include="PacketManager.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Listener.h" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

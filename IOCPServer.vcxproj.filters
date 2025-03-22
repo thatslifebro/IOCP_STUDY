@@ -5,7 +5,6 @@
     <ClCompile Include="Listener.cpp" />
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="Service.h" />
-    <ClCompile Include="IocpCore3.h" />
     <ClCompile Include="IocpObject.h" />
     <ClCompile Include="IocpEvent.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -13,16 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameServer.h" />
-    <ClInclude Include="PacketManager.h" />
-    <ClInclude Include="ConcurrentQueue.h" />
-    <ClInclude Include="Packet.h" />
-    <ClInclude Include="ClientInfo.h" />
-    <ClInclude Include="PacketID.h" />
-    <ClInclude Include="LoginInfo.h" />
     <ClInclude Include="LoginReq.h">
       <Filter>Packets</Filter>
     </ClInclude>
-    <ClInclude Include="ErrorCode.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="IocpCore.h" />
     <ClInclude Include="IocpEvent.h" />
@@ -35,5 +27,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Listener.h" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

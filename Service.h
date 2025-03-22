@@ -4,6 +4,7 @@
 #include "Listener.h"
 #include <set>
 #include <functional>
+#include <mutex>
 
 class Service : public std::enable_shared_from_this<Service>
 {
