@@ -10,6 +10,12 @@
 - 게임 서버 로직
     - todo
 
+## 주요 클래스
+- Service
+- IocpCore
+- Listner
+- Session
+
 ## 주요 로직
 
 ### main.cpp
